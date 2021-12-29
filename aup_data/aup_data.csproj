@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net5.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <PackageId>aupExportTool</PackageId>
+    <Authors>yuri___2006</Authors>
+    <Company />
+    <Product>aupExportTool</Product>
+    <Description>AviUtlのプロジェクトファイル(.aup)をzipに出力し, 依存関係をテキストファイルに出力するアプリ</Description>
+    <Version>1.0.0</Version>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
+    <AssemblyName>aupExportTool</AssemblyName>
+    <RootNamespace>aupExportTool</RootNamespace>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MetroSet_UI" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AupDotNet\AupDotNet.csproj" />
+  </ItemGroup>
+
+</Project>
