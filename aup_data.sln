@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.31727.386
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "aup_data", "aup_data\aup_data.csproj", "{5C4C4308-415C-44DE-B8ED-68E333ADE026}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AupDotNet", "AupDotNet\AupDotNet.csproj", "{C65B5227-8367-483F-84E9-EBE20834DCC2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AupDotNet", "AupDotNet\src\AupDotNet\AupDotNet.csproj", "{C65B5227-8367-483F-84E9-EBE20834DCC2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
