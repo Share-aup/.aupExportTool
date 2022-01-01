@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -146,6 +146,16 @@ namespace aup_data
                     }
                     if (!string.IsNullOrEmpty(scriptName))
                     {
+                        scripts.Add(scriptName);
+                    }
+
+                    foreach (var trackbar in effect.Trackbars)
+                    {
+                        if (trackbar.Type != TrackbarType.Script) continue;
+                        if (trackbar.ScriptIndex < 0 || trackbar.ScriptIndex >= exedit.TrackbarScripts.Count) continue;
+
+                        scriptName = exedit.TrackbarScripts[trackbar.ScriptIndex].Name;
+                        if (TrackbarScript.Defaults.Any(x => x.Name == scriptName)) continue;
                         scripts.Add(scriptName);
                     }
                 }
