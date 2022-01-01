@@ -170,60 +170,62 @@ namespace aup_data
             for (int objIdx = 0; objIdx < exedit.Objects.Count; objIdx++)
             {
                 var obj = exedit.Objects[objIdx];
+                if (obj.Chain) continue;
+
                 for (int effectIdx = 0; effectIdx < obj.Effects.Count; effectIdx++)
                 {
                     try
                     {
                         var effect = obj.Effects[effectIdx];
-                        if (effect is VideoFileEffect video && video.Filename != "")
+                        if (effect is VideoFileEffect video && !string.IsNullOrEmpty(video.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = video.Filename });
                         }
-                        else if (effect is ImageFileEffect image && image.Filename != "")
+                        else if (effect is ImageFileEffect image && !string.IsNullOrEmpty(image.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = image.Filename });
                         }
-                        else if (effect is AudioFileEffect audio && audio.Filename != "")
+                        else if (effect is AudioFileEffect audio && !string.IsNullOrEmpty(audio.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = audio.Filename });
                         }
-                        else if (effect is WaveformEffect waveform && waveform.Filename != "")
+                        else if (effect is WaveformEffect waveform && !string.IsNullOrEmpty(waveform.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = waveform.Filename });
                         }
-                        else if (effect is ShadowEffect shadow && shadow.Filename != "")
+                        else if (effect is ShadowEffect shadow && !string.IsNullOrEmpty(shadow.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = shadow.Filename });
                         }
-                        else if (effect is BorderEffect border && border.Filename != "")
+                        else if (effect is BorderEffect border && !string.IsNullOrEmpty(border.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = border.Filename });
                         }
-                        else if (effect is VideoCompositionEffect videoComp && videoComp.Filename != "")
+                        else if (effect is VideoCompositionEffect videoComp && !string.IsNullOrEmpty(videoComp.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = videoComp.Filename });
                         }
-                        else if (effect is ImageCompositionEffect imageComp && imageComp.Filename != "")
+                        else if (effect is ImageCompositionEffect imageComp && !string.IsNullOrEmpty(imageComp.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = imageComp.Filename });
                         }
-                        else if (effect is FigureEffect figure && figure.Filename != "")
+                        else if (effect is FigureEffect figure && !string.IsNullOrEmpty(figure.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = figure.Filename });
                         }
-                        else if (effect is MaskEffect mask && mask.Filename != "")
+                        else if (effect is MaskEffect mask && !string.IsNullOrEmpty(mask.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = mask.Filename });
                         }
-                        else if (effect is DisplacementEffect displacement && displacement.Filename != "")
+                        else if (effect is DisplacementEffect displacement && !string.IsNullOrEmpty(displacement.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = displacement.Filename });
                         }
-                        else if (effect is PartialFilterEffect pf && pf.Filename != "")
+                        else if (effect is PartialFilterEffect pf && !string.IsNullOrEmpty(pf.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = pf.Filename });
                         }
-                        else if (effect is ScriptFileEffect script && script.Params.ContainsKey("file") && script.Params["file"] != "")
+                        else if (effect is ScriptFileEffect script && !string.IsNullOrEmpty(script.Params?.GetValueOrDefault("file")))
                         {
                             var filename = script.Params["file"];
                             filename = filename[1..^1].Replace(@"\\", @"\");
