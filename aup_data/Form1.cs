@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -121,9 +121,11 @@ namespace aup_data
             /*================
              スクリプト一覧取得
             ================*/
-            string script_list = "";
+            var scripts = new SortedSet<string>();
             foreach (var obj in exedit.Objects)
             {
+                if (obj.Chain) continue;
+
                 foreach (var effect in obj.Effects)
                 {
                     string scriptName = "";
@@ -131,36 +133,24 @@ namespace aup_data
                     {
                         case AnimationEffect anm:
                             scriptName = anm.Name;
-                            if (scriptName != "")
-                            {
-                                script_list = script_list + scriptName + "\n";
-                            }
                             break;
                         case CustomObjectEffect coe:
                             scriptName = coe.Name;
-                            if (scriptName != "")
-                            {
-                                script_list = script_list + scriptName + "\n";
-                            }
                             break;
                         case CameraEffect cam:
                             scriptName = cam.Name;
-                            if (scriptName != "")
-                            {
-                                script_list = script_list + scriptName + "\n";
-                            }
                             break;
-                        case SceneChangeEffect scn:
+                        case SceneChangeEffect scn when scn.Params != null && scn.ScriptId == 2:
                             scriptName = scn.Name;
-                            if (scriptName != "")
-                            {
-                                script_list = script_list + scriptName + "\n";
-                            }
                             break;
                     }
-
+                    if (!string.IsNullOrEmpty(scriptName))
+                    {
+                        scripts.Add(scriptName);
+                    }
                 }
             }
+            string script_list = string.Join("\n", scripts);
             //MessageBox.Show(script_list, "Info");
 
             /*================
@@ -246,7 +236,7 @@ namespace aup_data
                 Encoding sjisEnc = Encoding.GetEncoding("Shift_JIS");
                 StreamWriter writer =
                   new StreamWriter($"{export_folder}\\依存関係.txt", true, sjisEnc);
-                writer.WriteLine($"【バージョン】\n拡張編集:{exedit.Version}\n\n【スクリプト一覧】\n{script_list}\n【フォント一覧】\n{font_list}");
+                writer.WriteLine($"【バージョン】\n拡張編集:{exedit.Version}\n\n【スクリプト一覧】\n{script_list}\n\n【フォント一覧】\n{font_list}");
                 writer.Close();
                 MessageBox.Show("選択されたプロジェクトファイル内に有効なファイルが確認されなかったため、圧縮アーカイブは作成されず依存関係のみ出力されました。", "Status");
                 return;
@@ -294,7 +284,7 @@ namespace aup_data
                 Encoding sjisEnc = Encoding.GetEncoding("Shift_JIS");
                 StreamWriter writer =
                   new StreamWriter($"{export_folder}\\依存関係.txt", true, sjisEnc);
-                writer.WriteLine($"【バージョン】\n拡張編集:{exedit.Version}\n\n【スクリプト一覧】\n{script_list}\n【フォント一覧】\n{font_list}");
+                writer.WriteLine($"【バージョン】\n拡張編集:{exedit.Version}\n\n【スクリプト一覧】\n{script_list}\n\n【フォント一覧】\n{font_list}");
                 writer.Close();
 
                 //ファイル消去オプションがTrueならtmpファイル消し去る
