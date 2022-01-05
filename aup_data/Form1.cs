@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -27,7 +27,8 @@ namespace aup_data
 
         private void Form1_Load(object sender, EventArgs e)
         {
-
+            //デフォでスイッチはTrue
+            metroSetSwitch1.Switched = true;
         }
 
         private const string Pattern = @"<s\d*,([^,>]+)(,[BI]*)?>";
