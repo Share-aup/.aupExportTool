@@ -34,6 +34,14 @@ namespace aup_data
         private const string Pattern = @"<s\d*,([^,>]+)(,[BI]*)?>";
         private List<FileItem> file_item = new();
 
+
+        private static List<string> sequentialList = new List<string>{
+            ".bmp",
+            ".jpg",
+            ".jpeg",
+            ".png"
+        };
+
         //aup file
         String aup_file = "";
 
@@ -181,6 +189,44 @@ namespace aup_data
                         if (effect is VideoFileEffect video && !string.IsNullOrEmpty(video.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = video.Filename });
+
+                            var dir = Path.GetDirectoryName(video.Filename);
+                            var ext = Path.GetExtension(video.Filename);
+                            var filename = Path.GetFileNameWithoutExtension(video.Filename);
+                            if (sequentialList.Contains(ext.ToLower()))
+                            {
+                                var filename_length = filename.Length;
+                                int i = filename.Length;
+                                while (i-- > 0)
+                                {
+                                    if (!('0' <= filename[i] && filename[i] <= '9'))
+                                    {
+                                        break;
+                                    }
+                                }
+                                i++;
+
+                                var filename_pre = filename.Substring(0, i);
+                                var num = ulong.Parse(filename.Substring(i));
+
+                                var digits = filename_length - i;
+                                if (digits > 0)
+                                {
+                                    num++;
+                                    while (true)
+                                    {
+                                        var builtpath = Path.Combine(dir, string.Format("{0}{1:D" + digits + "}{2}", filename_pre, num++, ext));
+                                        if (File.Exists(builtpath))
+                                        {
+                                            file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = builtpath });
+                                        }
+                                        else
+                                        {
+                                            break;
+                                        }
+                                    };
+                                }
+                            }
                         }
                         else if (effect is ImageFileEffect image && !string.IsNullOrEmpty(image.Filename))
                         {
