@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -15,6 +15,7 @@ using Karoterra.AupDotNet.ExEdit.Effects;
 using System.IO.Compression;
 
 
+
 namespace aup_data
 {
     public partial class Form1 : Form
@@ -27,30 +28,23 @@ namespace aup_data
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            //デフォでスイッチはTrue
-            metroSetSwitch1.Switched = true;
+            // リセットボタンを初期値無効
+            reset1.Enabled = false;
+            check_path_status.Start();
         }
 
         private const string Pattern = @"<s\d*,([^,>]+)(,[BI]*)?>";
         private List<FileItem> file_item = new();
 
-
-        private static List<string> sequentialList = new List<string>{
-            ".bmp",
-            ".jpg",
-            ".jpeg",
-            ".png"
-        };
-
-        //aup file
+        // aup file
         String aup_file = "";
 
         String export_folder = "";
 
 
-        private void metroSetButton3_Click(object sender, EventArgs e)
+        private void select_aup_click(object sender, EventArgs e)
         {
-            //ファイル選択
+            // ファイル選択
             OpenFileDialog ofd = new OpenFileDialog();
             ofd.Filter = "AviUtlプロジェクトファイル(*.aup)|*.aup";
             ofd.FilterIndex = 2;
@@ -66,16 +60,37 @@ namespace aup_data
             }
         }
 
-        private void metroSetButton2_Click(object sender, EventArgs e)
+
+
+
+        private void select_export_click(object sender, EventArgs e)
         {
-            //項目が全て埋まってるかとか
+            // 出力フォルダ取得
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+
+            fbd.Description = "出力先フォルダを指定してください。";
+            fbd.RootFolder = Environment.SpecialFolder.Desktop;
+            fbd.ShowNewFolderButton = true;
+
+            // ダイアログを表示する
+            if (fbd.ShowDialog(this) == DialogResult.OK)
+            {
+                metroSetTextBox2.Text = fbd.SelectedPath;
+                export_folder = fbd.SelectedPath;
+            }
+
+        }
+
+        private void run_click(object sender, EventArgs e)
+        {
+            // 項目が全て埋まってるかとか
             if (metroSetTextBox1.Text == "" && metroSetTextBox2.Text == "")
             {
-                MessageBox.Show("設定されてない値が存在します。", "Error");
+                MessageBox.Show("未入力の値が存在します。", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
 
-            //情報取得
+            // 情報取得
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
 
@@ -97,7 +112,7 @@ namespace aup_data
 
             if (exedit == null)
             {
-                MessageBox.Show("拡張編集のデータが確認できません");
+                MessageBox.Show(".aupファイル内に拡張編集のデータが確認できません", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
 
             /*================
@@ -125,7 +140,7 @@ namespace aup_data
             {
                 font_list = font_list + font + "\n";
             }
-            //MessageBox.Show($"拡張編集{exedit.Version}\n\n{font_list}", "Info");
+            // MessageBox.Show($"拡張編集{exedit.Version}\n\n{font_list}", "Info");
 
             /*================
              スクリプト一覧取得
@@ -170,7 +185,7 @@ namespace aup_data
                 }
             }
             string script_list = string.Join("\n", scripts);
-            //MessageBox.Show(script_list, "Info");
+            // MessageBox.Show(script_list, "Info");
 
             /*================
              ファイル一覧取得
@@ -189,44 +204,6 @@ namespace aup_data
                         if (effect is VideoFileEffect video && !string.IsNullOrEmpty(video.Filename))
                         {
                             file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = video.Filename });
-
-                            var dir = Path.GetDirectoryName(video.Filename);
-                            var ext = Path.GetExtension(video.Filename);
-                            var filename = Path.GetFileNameWithoutExtension(video.Filename);
-                            if (sequentialList.Contains(ext.ToLower()))
-                            {
-                                var filename_length = filename.Length;
-                                int i = filename.Length;
-                                while (i-- > 0)
-                                {
-                                    if (!('0' <= filename[i] && filename[i] <= '9'))
-                                    {
-                                        break;
-                                    }
-                                }
-                                i++;
-
-                                var filename_pre = filename.Substring(0, i);
-                                var num = ulong.Parse(filename.Substring(i));
-
-                                var digits = filename_length - i;
-                                if (digits > 0)
-                                {
-                                    num++;
-                                    while (true)
-                                    {
-                                        var builtpath = Path.Combine(dir, string.Format("{0}{1:D" + digits + "}{2}", filename_pre, num++, ext));
-                                        if (File.Exists(builtpath))
-                                        {
-                                            file_item.Add(new FileItem() { ObjectIndex = objIdx, EffectIndex = effectIdx, Filename = builtpath });
-                                        }
-                                        else
-                                        {
-                                            break;
-                                        }
-                                    };
-                                }
-                            }
                         }
                         else if (effect is ImageFileEffect image && !string.IsNullOrEmpty(image.Filename))
                         {
@@ -282,20 +259,20 @@ namespace aup_data
                     }
                     catch (Exception s)
                     {
-                        MessageBox.Show(s.ToString() + "\nOKを押して続行", "Error");
+                        MessageBox.Show(s.ToString() + "\nOKを押して続行", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
 
             if (file_item.Count == 0)
             {
-                //依存関係をテキストファイルに出力
+                // 依存関係をテキストファイルに出力
                 Encoding sjisEnc = Encoding.GetEncoding("Shift_JIS");
                 StreamWriter writer =
                   new StreamWriter($"{export_folder}\\依存関係.txt", true, sjisEnc);
-                writer.WriteLine($"【バージョン】\n拡張編集:{exedit.Version}\n\n【スクリプト一覧】\n{script_list}\n\n【フォント一覧】\n{font_list}");
+                writer.WriteLine($"拡張編集:{exedit.Version}\n\n【スクリプト】\n{script_list}\n\n【フォント】\n{font_list}");
                 writer.Close();
-                MessageBox.Show("選択されたプロジェクトファイル内に有効なファイルが確認されなかったため、圧縮アーカイブは作成されず依存関係のみ出力されました。", "Status");
+                MessageBox.Show("選択されたプロジェクトファイル内に有効なファイルが確認されなかったため、圧縮アーカイブは作成されず依存関係のみ出力されました。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
@@ -305,89 +282,87 @@ namespace aup_data
                 file_list = file_list + file.Filename + "\n";
             }
 
-            //MessageBox.Show(file_list, "Info");
+            // MessageBox.Show(file_list, "Info");
 
             /*================
              zipファイルに出力
             ================*/
             try
             {
-                //プログレスバー
+                // プログレスバー
                 metroSetProgressBar1.Minimum = 0;
                 metroSetProgressBar1.Maximum = file_item.Count;
                 metroSetProgressBar1.Value = 0;
 
-                //tmpディレクトリ作成
+                // tmpディレクトリ作成
                 Directory.CreateDirectory($"{export_folder}\\tmp");
 
-                //aupファイルのコピー
+                // aupファイルのコピー
                 File.Copy(aup_file, $"{export_folder}\\tmp\\{Path.GetFileName(aup_file)}", true);
+
+                string[] comp_dile_item = { };
                 int count_copy = 0;
-                //素材のコピー
+                // 素材のコピー
                 foreach (var file in file_item)
                 {
                     if (System.IO.File.Exists(file.Filename))
                     {
-                        File.Copy(file.Filename, $"{export_folder}\\tmp\\{Path.GetFileName(file.Filename)}", true);
+                        // 重複確認
+                        comp_dile_item[count_copy] = file.Filename;
+                        if (comp_dile_item.Contains(file.Filename))
+                        {
+                            MessageBox.Show($"{aup_file}に含まれている{file.Filename}は既に同一名称のファイルが存在します。\n処理を継続する為、このファイルのコピーをスキップします。", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                        else
+                        {
+                            // コピー
+                            File.Copy(file.Filename, $"{export_folder}\\tmp\\{Path.GetFileName(file.Filename)}", true);
+                        }
+
                     }
                     count_copy++;
                     metroSetProgressBar1.Value = count_copy;
                 }
 
-                //zipに圧縮
+                // zipに圧縮
                 ZipFile.CreateFromDirectory($"{export_folder}\\tmp", $"{export_folder}\\{Path.GetFileNameWithoutExtension(aup_file)}.zip");
 
-                //依存関係をテキストファイルに出力
+                // 依存関係をテキストファイルに出力
                 Encoding sjisEnc = Encoding.GetEncoding("Shift_JIS");
                 StreamWriter writer =
                   new StreamWriter($"{export_folder}\\依存関係.txt", true, sjisEnc);
                 writer.WriteLine($"【バージョン】\n拡張編集:{exedit.Version}\n\n【スクリプト一覧】\n{script_list}\n\n【フォント一覧】\n{font_list}");
                 writer.Close();
 
-                //ファイル消去オプションがTrueならtmpファイル消し去る
-                if (metroSetSwitch1.Switched == true)
-                {
-                    DirectoryInfo di = new DirectoryInfo($"{export_folder}\\tmp");
-                    di.Delete(true);
-                    MessageBox.Show($".aupファイルと依存関係にある素材を\n「{export_folder}\\{Path.GetFileNameWithoutExtension(aup_file)}.zip」\nへ出力しました。\n依存関係にあるフォント及びスクリプト一覧は\n「{export_folder}\\依存関係.txt」\nに保存されています。\n※一時ファイルの自動消去オプションが有効化されていた為、tmpファイルは消去されています。", "Info");
-                }
-                else
-                {
-                    MessageBox.Show($".aupファイルと依存関係にある素材を\n「{export_folder}\\{Path.GetFileNameWithoutExtension(aup_file)}.zip」\nへ出力しました。\n依存関係にあるフォント及びスクリプト一覧は\n「{export_folder}\\依存関係.txt」\nに保存されています。", "Info");
-                }
+                // tmpファイル消し去る
+                DirectoryInfo di = new DirectoryInfo($"{export_folder}\\tmp");
+                di.Delete(true);
+                MessageBox.Show($".aupファイルと依存関係にある素材を\n「{export_folder}\\{Path.GetFileNameWithoutExtension(aup_file)}.zip」\nへ出力しました。\n依存関係にあるフォント及びスクリプト一覧は\n「{export_folder}\\依存関係.txt」\nに保存されています。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
             }
             catch (Exception s)
             {
-                MessageBox.Show(s.ToString() + "\nOKを押して続行", "Error");
+                MessageBox.Show(s.ToString() + "\nOKを押して続行", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-
-
-        private void metroSetButton1_Click(object sender, EventArgs e)
+        private void reset_click(object sender, EventArgs e)
         {
-            //reset
-            metroSetTextBox1.Text = null;
-            metroSetTextBox2.Text = null;
+            // reset
+            metroSetTextBox1.Text = "";
+            metroSetTextBox2.Text = "";
         }
 
-        private void metroSetButton4_Click(object sender, EventArgs e)
+        private void check_path_status_Tick(object sender, EventArgs e)
         {
-            //出力フォルダ取得
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-
-            fbd.Description = "出力フォルダを指定してください。";
-            fbd.RootFolder = Environment.SpecialFolder.Desktop;
-            fbd.ShowNewFolderButton = true;
-
-            //ダイアログを表示する
-            if (fbd.ShowDialog(this) == DialogResult.OK)
+            if(metroSetTextBox1.Text != "" || metroSetTextBox2.Text != "")
             {
-                metroSetTextBox2.Text = fbd.SelectedPath;
-                export_folder = fbd.SelectedPath;
+                reset1.Enabled = true;
             }
-
+            else
+            {
+                reset1.Enabled = false;
+            }
         }
     }
 }
