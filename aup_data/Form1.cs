@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -37,21 +33,23 @@ namespace aup_data
         private List<FileItem> file_item = new();
 
         // aup file
-        String aup_file = "";
+        string aup_file = "";
 
-        String export_folder = "";
+        string export_folder = "";
 
 
-        private void select_aup_click(object sender, EventArgs e)
+        private void Select_aup_click(object sender, EventArgs e)
         {
             // ファイル選択
-            OpenFileDialog ofd = new OpenFileDialog();
-            ofd.Filter = "AviUtlプロジェクトファイル(*.aup)|*.aup";
-            ofd.FilterIndex = 2;
-            ofd.Title = ".aupファイルの選択";
-            ofd.RestoreDirectory = true;
-            ofd.CheckFileExists = true;
-            ofd.CheckPathExists = true;
+            OpenFileDialog ofd = new()
+            {
+                Filter = "AviUtlプロジェクトファイル(*.aup)|*.aup",
+                FilterIndex = 2,
+                Title = ".aupファイルの選択",
+                RestoreDirectory = true,
+                CheckFileExists = true,
+                CheckPathExists = true
+            };
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
@@ -63,14 +61,15 @@ namespace aup_data
 
 
 
-        private void select_export_click(object sender, EventArgs e)
+        private void Select_export_click(object sender, EventArgs e)
         {
             // 出力フォルダ取得
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-
-            fbd.Description = "出力先フォルダを指定してください。";
-            fbd.RootFolder = Environment.SpecialFolder.Desktop;
-            fbd.ShowNewFolderButton = true;
+            FolderBrowserDialog fbd = new()
+            {
+                Description = "出力先フォルダを指定してください。",
+                RootFolder = Environment.SpecialFolder.Desktop,
+                ShowNewFolderButton = true
+            };
 
             // ダイアログを表示する
             if (fbd.ShowDialog(this) == DialogResult.OK)
@@ -84,7 +83,7 @@ namespace aup_data
         private void run_click(object sender, EventArgs e)
         {
             // 項目が全て埋まってるかとか
-            if (metroSetTextBox1.Text == "" && metroSetTextBox2.Text == "")
+            if (metroSetTextBox1.Text == "" || metroSetTextBox2.Text == "")
             {
                 MessageBox.Show("未入力の値が存在します。", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
@@ -135,10 +134,15 @@ namespace aup_data
                 }
             }
 
-            String font_list = "";
+            string font_list = "";
             foreach (var font in fonts)
             {
                 font_list = font_list + font + "\n";
+            }
+            // フォント使用数が0の場合
+            if (fonts.Count == 0)
+            {
+                font_list = "使用されているフォントはありません。";
             }
             // MessageBox.Show($"拡張編集{exedit.Version}\n\n{font_list}", "Info");
 
@@ -184,8 +188,20 @@ namespace aup_data
                     }
                 }
             }
-            string script_list = string.Join("\n", scripts);
+
+            string script_list = "";
+            // スクリプト使用数が0の場合
+            foreach (var script in scripts)
+            {
+                script_list = script_list + script + "\n";
+            }
+            if (scripts.Count == 0)
+            {
+                script_list = "使用されているスクリプトはありません。";
+            }
             // MessageBox.Show(script_list, "Info");
+
+
 
             /*================
              ファイル一覧取得
@@ -276,13 +292,58 @@ namespace aup_data
                 return;
             }
 
-            String file_list = "";
+            // 競合管理用
+            List<string> filename_list = new();
+            // コピー先名称保存用
+            List<List<string>> copy_list = new();
+            // pf編集用
+            List<string> pfe_list = new();
+            
+            string file_list = "";
             foreach (var file in file_item)
             {
-                file_list = file_list + file.Filename + "\n";
+                // 競合管理用配列にすでに存在するか確認
+                if (filename_list.Contains(Path.GetFileName(file.Filename)))
+                {
+                    // 存在する
+
+                    // 同名の要素が何個存在するか
+                    int count = 0;
+                    foreach (var filename in filename_list)
+                    {
+                        if (filename == file.Filename)
+                        {
+                            count++;
+                        }
+                    }
+                    // n_ファイル名.ext
+                    file_list = file_list + count + "_" + file.Filename + "\n";
+
+                    // ディレクトリの取得
+                    var dir = Path.GetDirectoryName(file.Filename) + "\\";
+
+                    // 現在のファイル名を取得
+                    string fname = Path.GetFileName(file.Filename);
+
+                    // 元ファイルと移動先ファイル名を対応付ける
+                    copy_list.Add(new List<string>() { file.Filename, count + "_" + fname });
+                    pfe_list.Add(dir + count + "_" + fname);
+                }
+                else
+                {
+                    // 存在しない
+
+                    // 現在のファイル名を取得
+                    string fname = Path.GetFileName(file.Filename);
+
+                    // 元ファイルと移動先ファイル名を対応付ける
+                    copy_list.Add(new List<string>() { file.Filename, fname });
+                }
+
+                // ファイル名を競合間利用配列に追加
+                filename_list.Add(Path.GetFileName(file.Filename));
             }
 
-            // MessageBox.Show(file_list, "Info");
 
             /*================
              zipファイルに出力
@@ -297,29 +358,49 @@ namespace aup_data
                 // tmpディレクトリ作成
                 Directory.CreateDirectory($"{export_folder}\\tmp");
 
+                string copy_aup_path = $"{export_folder}\\tmp\\_{Path.GetFileName(aup_file)}";
+
                 // aupファイルのコピー
-                File.Copy(aup_file, $"{export_folder}\\tmp\\{Path.GetFileName(aup_file)}", true);
+                File.Copy(aup_file, copy_aup_path, true);
 
-                string[] comp_dile_item = { };
-                int count_copy = 0;
-                // 素材のコピー
-                foreach (var file in file_item)
+                /*=====================================================
+                 コピーしたaupファイル内のパスを競合しているもののみ変更先パスに置き換え
+                =====================================================*/
+                // コピーしたaupファイルを読み込み
+                var _aup = new AviUtlProject();
+                using (var reader = new BinaryReader(File.OpenRead(copy_aup_path)))
                 {
-                    if (System.IO.File.Exists(file.Filename))
+                    _aup.Read(reader);
+                }
+                ExEditProject _exedit = null;
+                for (int i = 0; i < _aup.FilterProjects.Count; i++)
+                {
+                    if (_aup.FilterProjects[i].Name == "拡張編集")
                     {
-                        // 重複確認
-                        comp_dile_item[count_copy] = file.Filename;
-                        if (comp_dile_item.Contains(file.Filename))
-                        {
-                            MessageBox.Show($"{aup_file}に含まれている{file.Filename}は既に同一名称のファイルが存在します。\n処理を継続する為、このファイルのコピーをスキップします。", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        }
-                        else
-                        {
-                            // コピー
-                            File.Copy(file.Filename, $"{export_folder}\\tmp\\{Path.GetFileName(file.Filename)}", true);
-                        }
-
+                        _exedit = new ExEditProject(_aup.FilterProjects[i] as RawFilterProject);
+                        _aup.FilterProjects[i] = _exedit;
+                        break;
                     }
+                }
+                // aupファイル内のファイル名を更新
+                aup_rename.Rename(_aup, _exedit, "", file_item, pfe_list);
+                //aup_rename.Rename(_aup, _exedit, export_path, file_item, pfe_list);
+                
+                int count_copy = 0;
+                
+                // copy_listのファイルを順次コピー
+                foreach (var file in copy_list)
+                {
+                    // 素材元の存在確認
+                    if (System.IO.File.Exists(file[0]))
+                    {
+                        // file[0] -> コピー元フルパス
+                        // file[1] -> コピー先ファイル名
+                        // コピー
+                        File.Copy(file[0], $"{export_folder}\\tmp\\{file[1]}", true);
+                        
+                    }
+                    // プログレスバーの反映
                     count_copy++;
                     metroSetProgressBar1.Value = count_copy;
                 }
@@ -338,7 +419,8 @@ namespace aup_data
                 DirectoryInfo di = new DirectoryInfo($"{export_folder}\\tmp");
                 di.Delete(true);
                 MessageBox.Show($".aupファイルと依存関係にある素材を\n「{export_folder}\\{Path.GetFileNameWithoutExtension(aup_file)}.zip」\nへ出力しました。\n依存関係にあるフォント及びスクリプト一覧は\n「{export_folder}\\依存関係.txt」\nに保存されています。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
+                // プログレスバーを初期値に
+                metroSetProgressBar1.Value = 0;
             }
             catch (Exception s)
             {
@@ -346,14 +428,14 @@ namespace aup_data
             }
         }
 
-        private void reset_click(object sender, EventArgs e)
+        private void Reset_click(object sender, EventArgs e)
         {
             // reset
             metroSetTextBox1.Text = "";
             metroSetTextBox2.Text = "";
         }
 
-        private void check_path_status_Tick(object sender, EventArgs e)
+        private void Check_path_status_Tick(object sender, EventArgs e)
         {
             if(metroSetTextBox1.Text != "" || metroSetTextBox2.Text != "")
             {
@@ -364,6 +446,8 @@ namespace aup_data
                 reset1.Enabled = false;
             }
         }
+
+        
     }
 }
 class FileItem

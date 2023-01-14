@@ -207,7 +207,7 @@ namespace aup_data
             this.select_export_1.Text = "Select";
             this.select_export_1.ThemeAuthor = "Narwin";
             this.select_export_1.ThemeName = "MetroLite";
-            this.select_export_1.Click += new System.EventHandler(this.select_export_click);
+            this.select_export_1.Click += new System.EventHandler(this.Select_export_click);
             // 
             // select_aup1
             // 
@@ -234,7 +234,7 @@ namespace aup_data
             this.select_aup1.Text = "Select";
             this.select_aup1.ThemeAuthor = "Narwin";
             this.select_aup1.ThemeName = "MetroLite";
-            this.select_aup1.Click += new System.EventHandler(this.select_aup_click);
+            this.select_aup1.Click += new System.EventHandler(this.Select_aup_click);
             // 
             // run1
             // 
@@ -290,11 +290,11 @@ namespace aup_data
             this.reset1.Text = "Reset";
             this.reset1.ThemeAuthor = "Narwin";
             this.reset1.ThemeName = "MetroLite";
-            this.reset1.Click += new System.EventHandler(this.reset_click);
+            this.reset1.Click += new System.EventHandler(this.Reset_click);
             // 
             // check_path_status
             // 
-            this.check_path_status.Tick += new System.EventHandler(this.check_path_status_Tick);
+            this.check_path_status.Tick += new System.EventHandler(this.Check_path_status_Tick);
             // 
             // Form1
             // 
