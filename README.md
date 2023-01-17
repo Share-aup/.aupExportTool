@@ -1,5 +1,5 @@
 # .aupExportTool
-## .aupファイルのプラグイン, フォント, ファイル管理をちょっとだけ簡単にー
+## AviUtlのプロジェクトファイル管理を管理をちょっとだけ簡単にー
 .aupExportToolでは、特定のプロジェクトファイルに使用されているフォントやスクリプトなどの依存関係を一覧として出力するだけでなく、使用されている画像や動画ファイルを.zip形式の単一アーカイブファイル化することができます。   
   
 ## 動作環境
@@ -9,7 +9,7 @@
 ✅ .Net SDK6.0(環境に応じてx86またはx86_64)  
 
 ## Licence
-AupDotNet(使用ライブラリ)  
+### AupDotNet
 Copyright (c) 2021 karoterra  
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
